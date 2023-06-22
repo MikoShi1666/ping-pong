@@ -73,11 +73,13 @@ class ball(GameSprite):
             count_l += 1
             self.rect.x = 750
             self.rect.y = 350
+            kick_ball = 0
             self.speed_x = -1 
         elif self.rect.x < 5:
             count_r += 1
             self.rect.x = 500/2
             self.rect.y = 350
+            kick_ball = 0
             self.speed_x = +1
         elif self.rect.y > win_height-51:
             self.speed_y *= -1 
