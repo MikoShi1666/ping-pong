@@ -3,6 +3,9 @@ from random import randint
 import os
 os.environ['SDL_VIDEO_CENTERED'] = "1"
 
+font.init()
+font2 = font.Font(None, 36)
+
 img_back = "background.jpg" 
 img_platform1 = "platform_left.png" 
 img_platform2 = "platform_right.png" 
@@ -16,8 +19,11 @@ window = display.set_mode((win_width, win_height))
 
 finish = False
 run = True
-num_fire = 0
+count_l = 0
+count_r = 0
 rel_time = False
+
+kick_ball = 0
 
 class GameSprite(sprite.Sprite): 
     def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed, player_speed_x, player_speed_y): 
@@ -60,41 +66,64 @@ class ball(GameSprite):
     def update(self):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
+        global count_l 
+        global count_r
         #исчезновение 
-        if self.rect.x > win_width-50:
-            self.speed_x *= -1 
+        if self.rect.x > win_width-51:
+            count_l += 1
+            self.rect.x = 750
+            self.rect.y = 350
+            self.speed_x = -1 
         elif self.rect.x < 5:
-            self.speed_x *= -1
-        elif self.rect.y > win_height-50:
+            count_r += 1
+            self.rect.x = 500/2
+            self.rect.y = 350
+            self.speed_x = +1
+        elif self.rect.y > win_height-51:
             self.speed_y *= -1 
         elif self.rect.y < 5:
             self.speed_y *= -1 
-         
+    def kick(self):
+        if self.rect.x < 500:
+            self.rect.x += 5 
+        elif self.rect.x > 500:
+            self.rect.x -=5 
+        self.speed_x *= -1
+    def speed_kick(self):
+        if self.speed_x < 0:
+            self.speed_x -= 1
+        elif self.speed_x > 0:
+            self.speed_x += 1
+
+
 
 background = transform.scale(image.load(img_back), (win_width, win_height))
 # platform1 = transform.scale(image.load(img_platform1), (70, 20))
 
 #создание героя
-platform_l = platform_L(img_platform1, 50, win_height/2, 30, 130, 2, 0, 0)
-platform_r = platform_R(img_platform2, 920, win_height/2, 30, 130, 2, 0, 0)
+platform_l = platform_L(img_platform1, 0, win_height/2, 30, 130, 2, 0, 0)
+platform_r = platform_R(img_platform2, 970, win_height/2, 30, 130, 2, 0, 0)
 ball = ball(img_ball, 475,win_height/2,50,50,0,1,1)
 while run:
     for e in event.get():
         if e.type == QUIT :
             run = False
-        elif e.type == KEYDOWN:
-            if e.key == K_SPACE:
-                if num_fire < 5 and rel_time == False:
-                    num_fire += 1
-                    # fire_sound.play()
-                    ship.fire()
-                elif num_fire >= 5 and rel_time == False:
-                    last_time = timer()
-                    rel_time = True
 
-                    
     if finish != True:
+        if sprite.collide_rect(ball, platform_l) or sprite.collide_rect(ball, platform_r):            
+                ball.kick()
+                kick_ball += 1
+        if kick_ball > 3:
+            ball.speed_kick()
+            kick_ball = 0
+
+        
+
         window.blit(background, (0,0))
+
+        text = font2.render('Счет: '+str(count_l)+":"+str(count_r),1,(255,255,255))
+        window.blit(text,(10,20))
+
         platform_l.reset()
         platform_l.update()
 
